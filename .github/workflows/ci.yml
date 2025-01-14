@@ -30,18 +30,23 @@ jobs:
       run: |
         pytest --maxfail=1 --disable-warnings -q > result.log || true
 
+    - name: Capture test results
+      id: capture_results
+      run: |
+        tail -n 10 result.log > test_results.txt
+        cat test_results.txt
+
     - name: Add comment to PR with results
       uses: peter-evans/create-or-update-comment@v2
       with:
         issue-number: ${{ github.event.pull_request.number }}
         body: |
           ### Résultats des tests
-          $(tail -n 10 result.log)  # Affiche les 10 dernières lignes du log des tests
-          
+          $(cat test_results.txt)
+
     - name: Add detailed feedback
       run: |
         if grep -q "FAILED" result.log; then
           echo "Certains tests ont échoué. Voici quelques pistes d'amélioration..." >> feedback.txt
         else
           echo "Félicitations ! Tous les tests ont réussi." >> feedback.txt
-        fi
